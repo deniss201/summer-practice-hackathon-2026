@@ -13,6 +13,7 @@ export async function POST(req: NextRequest) {
     const body = await req.json().catch(() => null);
     const sport: string | undefined = body?.sport;
     const location: string | undefined = body?.location;
+    console.log("[venue-suggestions] received:", { sport, location });
 
     if (!sport || typeof sport !== "string" || sport.trim().length === 0) {
       return NextResponse.json({ error: "sport is required" }, { status: 400 });
@@ -30,7 +31,8 @@ export async function POST(req: NextRequest) {
 
     const prompt =
       `Suggest 3 realistic venues for playing ${sport} in ${location}. ` +
-      `Return only a JSON array like: [{name, address, estimatedPrice, notes}]. ` +
+      `Return ONLY a valid JSON array, no markdown, no backticks, no explanation. ` +
+      `Format: [{name, address, estimatedPrice, notes}]. ` +
       `estimatedPrice should be a rough cost per person per session. ` +
       `notes should be one short practical tip.`;
 
@@ -42,9 +44,12 @@ export async function POST(req: NextRequest) {
     });
     const text = completion.choices[0].message.content ?? "[]";
 
+    console.log("[venue-suggestions] raw AI response:", text);
+
     let venues: Venue[] = [];
     try {
-      const match = text.match(/\[[\s\S]*\]/);
+      const clean = text.replace(/```json|```/g, "").trim();
+      const match = clean.match(/\[[\s\S]*\]/);
       const jsonStr = match ? match[0] : "[]";
       const parsed = JSON.parse(jsonStr);
       if (Array.isArray(parsed)) {

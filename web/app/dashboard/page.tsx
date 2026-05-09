@@ -49,7 +49,7 @@ interface OpenGroup {
 interface Venue {
   name: string;
   address: string;
-  estimatedPrice: string;
+  estimatedPrice: string | number;
   notes: string;
 }
 
@@ -315,7 +315,7 @@ function VenueCard({
             className="shrink-0 font-mono-s2m text-[11px] tracker-wide px-2 py-1 border whitespace-nowrap"
             style={{ color: "var(--volt)", borderColor: "rgba(204,245,40,0.3)" }}
           >
-            {venue.estimatedPrice}
+            {typeof venue.estimatedPrice === "number" ? `€${venue.estimatedPrice}` : venue.estimatedPrice}
           </div>
         </div>
         <div className="text-xs leading-relaxed" style={{ color: "var(--muted)" }}>
@@ -355,6 +355,7 @@ function GroupCard({
   venues,
   venueLoading,
   onFindVenues,
+  onSetVenues,
   locked,
   locking,
   onLockIn,
@@ -372,10 +373,11 @@ function GroupCard({
   index: number;
   nameMap: Record<string, string>;
   currentUserId: string;
-  userLocation: string | null;
+  userLocation: string;
   venues: Venue[] | null;
   venueLoading: boolean;
   onFindVenues: () => void;
+  onSetVenues: (venues: Venue[]) => void;
   locked: boolean;
   locking: boolean;
   onLockIn: () => void;
@@ -391,12 +393,13 @@ function GroupCard({
 }) {
   const totalSlots = 10;
   const emptySlots = Math.max(0, Math.min(3, totalSlots - group.members.length));
-  const isCaptain = group.members.some(
-    (m) => m.userId === currentUserId && m.role === "captain"
-  );
+  const userId = localStorage.getItem("userId");
+  const isCaptain = group.members.some((m) => m.userId === userId && m.role === "captain");
+  console.log("[isCaptain]", isCaptain, "userId:", userId, "members:", group.members);
   const confirmedCount = group.members.filter((m) => m.confirmed).length;
 
   function handleDetails() {
+    console.log("[details clicked]", isCaptain, group.id);
     if (isCaptain) {
       onFindVenues();
     } else {
@@ -538,7 +541,18 @@ function GroupCard({
           {locking ? "LOCKING…" : locked ? "LOCKED IN ✓" : <>Lock In <IconArrow className="w-5 h-5" /></>}
         </button>
         <button
-          onClick={handleDetails}
+          onClick={async () => {
+            console.log("[details] clicked, isCaptain:", isCaptain, "sport:", group.sport, "location:", userLocation);
+            if (!isCaptain) return;
+            const res = await fetch("/api/ai/venue-suggestions", {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({ sport: group.sport, location: userLocation }),
+            });
+            const data = await res.json();
+            console.log("[details] venues:", data);
+            onSetVenues(Array.isArray(data.venues) ? data.venues : []);
+          }}
           className="px-6 border-l font-mono-s2m text-xs tracker-wide transition-opacity hover:opacity-70"
           style={{
             borderColor: locked ? "var(--border)" : "rgba(0,0,0,0.2)",
@@ -984,13 +998,16 @@ export default function DashboardPage() {
     if (!user?.location) return;
     setVenueLoadingMap((prev) => ({ ...prev, [groupId]: true }));
     try {
+      console.log("[venues] fetching with:", { sport, location: user.location });
       const res = await fetch("/api/ai/venue-suggestions", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ sport, location: user.location }),
       });
       const data = await res.json();
-      setVenueMap((prev) => ({ ...prev, [groupId]: data.venues ?? [] }));
+      console.log("[venues] response:", data);
+      const venues = Array.isArray(data.venues) ? data.venues : Array.isArray(data) ? data : [];
+      setVenueMap((prev) => ({ ...prev, [groupId]: venues }));
     } finally {
       setVenueLoadingMap((prev) => ({ ...prev, [groupId]: false }));
     }
@@ -1315,10 +1332,11 @@ export default function DashboardPage() {
                     index={i}
                     nameMap={nameMap}
                     currentUserId={user.id}
-                    userLocation={user.location}
+                    userLocation={user.location ?? "Timisoara"}
                     venues={venueMap[group.id] ?? null}
                     venueLoading={venueLoadingMap[group.id] ?? false}
                     onFindVenues={() => handleFindVenues(group.id, group.sport)}
+                    onSetVenues={(v) => setVenueMap((prev) => ({ ...prev, [group.id]: v }))}
                     locked={lockedMap[group.id] ?? false}
                     locking={lockingMap[group.id] ?? false}
                     onLockIn={() => handleLockIn(group.id)}
