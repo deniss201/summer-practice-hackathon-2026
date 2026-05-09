@@ -1,0 +1,80 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id         String   @id @default(cuid())
+  name       String
+  email      String   @unique
+  avatar     String?
+  bio        String?
+  skillLevel String?
+  location   String?
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  sportPreferences SportPreference[]
+  availability     Availability[]
+  groupMembers     GroupMember[]
+}
+
+model SportPreference {
+  id     String @id @default(cuid())
+  userId String
+  sport  String
+  skill  String
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, sport])
+}
+
+model Availability {
+  id          String   @id @default(cuid())
+  userId      String
+  date        DateTime
+  isAvailable Boolean  @default(true)
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, date])
+}
+
+model MatchGroup {
+  id        String   @id @default(cuid())
+  sport     String
+  timeSlot  DateTime
+  status    String   @default("open")
+  createdAt DateTime @default(now())
+
+  members GroupMember[]
+  event   Event?
+}
+
+model GroupMember {
+  id      String @id @default(cuid())
+  groupId String
+  userId  String
+  role    String @default("member")
+
+  group MatchGroup @relation(fields: [groupId], references: [id], onDelete: Cascade)
+  user  User       @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([groupId, userId])
+}
+
+model Event {
+  id        String   @id @default(cuid())
+  groupId   String   @unique
+  venue     String
+  time      DateTime
+  status    String   @default("scheduled")
+  createdAt DateTime @default(now())
+
+  group MatchGroup @relation(fields: [groupId], references: [id], onDelete: Cascade)
+}
