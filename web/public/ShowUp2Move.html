@@ -1,0 +1,819 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>ShowUp2Move</title>
+<style>
+:root {
+  --or: #f97316; --or-d: #ea580c; --gr: #16a34a;
+  --dk: #1e293b; --mid: #64748b; --lt: #f1f5f9;
+  --bd: #e2e8f0; --wh: #ffffff; --r: 14px; --r-sm: 8px;
+  --sh: 0 1px 3px rgba(0,0,0,.1),0 1px 2px rgba(0,0,0,.06);
+  --sh-md: 0 4px 6px -1px rgba(0,0,0,.1);
+}
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;background:var(--lt);color:var(--dk);min-height:100dvh;overflow-x:hidden}
+.hidden{display:none!important}
+/* nav */
+#bnav{position:fixed;bottom:0;left:0;right:0;height:62px;background:var(--wh);border-top:1px solid var(--bd);display:flex;z-index:100;padding-bottom:env(safe-area-inset-bottom,0)}
+.nb{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;border:none;background:none;cursor:pointer;color:var(--mid);font-size:11px;font-weight:500;transition:color .2s}
+.nb.on{color:var(--or)}
+.nb svg{width:22px;height:22px}
+/* pages */
+.pg{min-height:100dvh;padding-bottom:78px}
+.pi{max-width:480px;margin:0 auto;padding:0 16px}
+/* buttons */
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;padding:13px 22px;border-radius:var(--r-sm);border:none;cursor:pointer;font-size:15px;font-weight:600;transition:all .2s;line-height:1;font-family:inherit}
+.btn:disabled{opacity:.5;cursor:not-allowed}
+.bp{background:var(--or);color:#fff}.bp:hover:not(:disabled){background:var(--or-d)}
+.bg2{background:var(--gr);color:#fff}
+.bo{background:transparent;border:2px solid var(--or);color:var(--or)}
+.bl{background:var(--lt);color:var(--dk)}
+.bgh{background:transparent;color:var(--mid)}
+.bw{width:100%}.bsm{padding:8px 16px;font-size:13px}.blg{padding:18px 28px;font-size:17px;border-radius:var(--r)}
+/* forms */
+.fg{display:flex;flex-direction:column;gap:6px}
+.fl{font-size:12px;font-weight:700;color:var(--mid);text-transform:uppercase;letter-spacing:.5px}
+input,select,textarea{width:100%;padding:13px 14px;border:1.5px solid var(--bd);border-radius:var(--r-sm);font-size:15px;outline:none;transition:border-color .2s;background:var(--wh);color:var(--dk);font-family:inherit}
+input:focus,select:focus,textarea:focus{border-color:var(--or)}
+textarea{resize:vertical;min-height:88px}
+/* card */
+.card{background:var(--wh);border-radius:var(--r);padding:18px;box-shadow:var(--sh)}
+/* avatar */
+.av{border-radius:50%;object-fit:cover;display:flex;align-items:center;justify-content:center;color:#fff;font-weight:700;flex-shrink:0;background:var(--or)}
+.av-lg{width:72px;height:72px;font-size:28px}
+.av-md{width:46px;height:46px;font-size:17px}
+.av-sm{width:34px;height:34px;font-size:13px}
+/* toast */
+#tc{position:fixed;top:16px;left:50%;transform:translateX(-50%);z-index:9999;display:flex;flex-direction:column;gap:8px;pointer-events:none;width:calc(100% - 32px);max-width:380px}
+.tst{padding:11px 17px;border-radius:var(--r-sm);font-size:14px;font-weight:500;color:#fff;background:var(--dk);animation:tIn .3s ease,tOut .3s ease 2.7s forwards;pointer-events:auto}
+.tst.ok{background:var(--gr)}.tst.err{background:#dc2626}.tst.inf{background:#2563eb}
+@keyframes tIn{from{opacity:0;transform:translateY(-8px)}to{opacity:1;transform:translateY(0)}}
+@keyframes tOut{to{opacity:0;transform:translateY(-8px)}}
+/* section */
+.sec{display:flex;flex-direction:column;gap:12px}
+.st{font-size:16px;font-weight:700;display:flex;align-items:center;justify-content:space-between}
+/* ── WELCOME ── */
+#pg-welcome{min-height:100dvh;background:linear-gradient(160deg,#1e293b 0%,#0f172a 60%,#1a1a2e 100%);display:flex;flex-direction:column;align-items:center;color:#fff;padding-bottom:0}
+.wh{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:14px;padding:32px 24px;text-align:center}
+.we{font-size:68px;line-height:1}
+.wt{font-size:34px;font-weight:900;letter-spacing:-1px}.wt span{color:var(--or)}
+.ws{font-size:15px;color:#94a3b8;max-width:250px;line-height:1.5}
+.wf{display:flex;flex-direction:column;gap:10px;width:100%;max-width:300px;margin:24px 0}
+.wfi{display:flex;align-items:center;gap:12px;font-size:14px;color:#cbd5e1}
+.wfi-ic{width:34px;height:34px;border-radius:50%;background:rgba(249,115,22,.15);display:flex;align-items:center;justify-content:center;font-size:15px;flex-shrink:0}
+.wa{padding:28px 24px;padding-bottom:calc(28px + env(safe-area-inset-bottom,0));width:100%;display:flex;flex-direction:column;gap:10px;max-width:400px}
+/* ── ONBOARD ── */
+#pg-onboard{background:var(--wh);min-height:100dvh;padding-bottom:0}
+.oh{padding:18px 20px 14px;position:sticky;top:0;background:var(--wh);z-index:10;border-bottom:1px solid var(--bd)}
+.opb{display:flex;gap:6px;margin-top:12px}
+.pb{flex:1;height:4px;border-radius:2px;background:var(--bd);transition:background .3s}
+.pb.dn{background:var(--or)}
+.os{padding:22px 20px;display:flex;flex-direction:column;gap:18px}
+.pu{display:flex;flex-direction:column;align-items:center;gap:10px;padding:18px;border:2px dashed var(--bd);border-radius:var(--r);cursor:pointer;transition:border-color .2s;position:relative}
+.pu:hover{border-color:var(--or)}
+.pu input{position:absolute;inset:0;opacity:0;cursor:pointer;width:100%;height:100%}
+.pu img{width:76px;height:76px;border-radius:50%;object-fit:cover}
+.sg{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.sc{border:2px solid var(--bd);border-radius:var(--r-sm);padding:13px;cursor:pointer;transition:all .2s;user-select:none}
+.sc.sel{border-color:var(--or);background:#fff7ed}
+.sc-ic{font-size:26px;margin-bottom:5px}
+.sc-nm{font-size:14px;font-weight:600}
+.sc-sk{margin-top:7px}
+.sc-sk select{padding:5px 8px;font-size:12px}
+.sl{font-size:12px;font-weight:700;color:var(--or);text-transform:uppercase;letter-spacing:.5px}
+.sh{font-size:23px;font-weight:800;margin-top:3px}
+.ssb{font-size:14px;color:var(--mid);line-height:1.5}
+/* ── DASHBOARD ── */
+.dh{background:linear-gradient(135deg,var(--dk) 0%,#334155 100%);padding:48px 20px 22px;color:#fff}
+.dhi{max-width:480px;margin:0 auto}
+.dg{font-size:13px;color:#94a3b8;margin-bottom:3px}
+.dn2{font-size:25px;font-weight:800;margin-bottom:10px}
+.dss{display:flex;gap:18px;margin-top:10px}
+.ds{text-align:center}
+.dsn{font-size:21px;font-weight:800;color:var(--or)}
+.dsl{font-size:11px;color:#94a3b8;margin-top:2px}
+.db{max-width:480px;margin:0 auto;padding:16px;display:flex;flex-direction:column;gap:16px}
+/* showup */
+.suc{border-radius:var(--r);padding:22px;display:flex;flex-direction:column;align-items:center;gap:10px;cursor:pointer;transition:all .3s;border:3px solid transparent;text-align:center;box-shadow:var(--sh-md)}
+.suc.av{background:#f0fdf4;border-color:var(--gr);color:var(--gr)}
+.suc.na{background:var(--wh);border-color:var(--or);color:var(--or)}
+.su-ic{font-size:46px}.su-ti{font-size:21px;font-weight:800}.su-sb{font-size:13px;opacity:.8}
+/* weather */
+.wc{background:linear-gradient(135deg,#3b82f6 0%,#1d4ed8 100%);border-radius:var(--r);padding:14px 18px;color:#fff;display:flex;align-items:center;gap:14px}
+.wi{font-size:38px}.wtp{font-size:30px;font-weight:800}.wds{font-size:13px;opacity:.85}
+.wrec{font-size:12px;background:rgba(255,255,255,.2);border-radius:20px;padding:3px 10px;margin-top:4px;display:inline-block}
+/* achievement */
+.ach{display:flex;align-items:center;gap:10px;padding:10px 13px;background:#fef3c7;border-radius:var(--r-sm);font-size:14px;font-weight:500;color:#92400e}
+.ach-ic{font-size:19px}
+/* ── GROUPS ── */
+.gc{background:var(--wh);border-radius:var(--r);box-shadow:var(--sh);overflow:hidden;margin-bottom:10px}
+.gch{padding:14px 18px;display:flex;align-items:center;justify-content:space-between;border-bottom:1px solid var(--bd)}
+.gsic{font-size:30px;margin-right:10px}
+.gsn{font-size:17px;font-weight:700;text-transform:capitalize}
+.gst{font-size:12px;font-weight:600;padding:3px 10px;border-radius:20px;background:#dcfce7;color:#166534}
+.gm{padding:14px 18px;display:flex;flex-direction:column;gap:9px}
+.mr{display:flex;align-items:center;gap:10px}
+.mn{font-size:14px;font-weight:500;flex:1}
+.cb{display:inline-flex;align-items:center;gap:3px;font-size:11px;font-weight:700;color:#92400e;background:#fef3c7;padding:3px 8px;border-radius:20px}
+.ga{padding:11px 18px;border-top:1px solid var(--bd);display:flex;gap:8px}
+.es{display:flex;flex-direction:column;align-items:center;gap:11px;padding:44px 22px;text-align:center;color:var(--mid)}
+.ei{font-size:46px}
+/* ── CHAT ── */
+#pg-chat{display:flex;flex-direction:column;background:var(--wh);padding-bottom:0;height:100dvh}
+.chh{position:sticky;top:0;background:var(--wh);border-bottom:1px solid var(--bd);padding:13px 16px;display:flex;align-items:center;gap:11px;z-index:10}
+.chm{flex:1;overflow-y:auto;padding:14px;display:flex;flex-direction:column;gap:8px;padding-bottom:72px}
+.cia{position:fixed;bottom:0;left:0;right:0;background:var(--wh);border-top:1px solid var(--bd);padding:10px 14px;padding-bottom:calc(10px + env(safe-area-inset-bottom,0));display:flex;gap:8px;max-width:480px;margin:0 auto}
+.cia input{flex:1;padding:10px 14px;border-radius:20px}
+.cm{display:flex;gap:8px;max-width:82%}
+.cm.own{align-self:flex-end;flex-direction:row-reverse}
+.cbbl{padding:10px 14px;border-radius:18px;font-size:14px;line-height:1.45;word-break:break-word}
+.cm.oth .cbbl{background:var(--lt);color:var(--dk);border-radius:4px 18px 18px 18px}
+.cm.own .cbbl{background:var(--or);color:#fff;border-radius:18px 4px 18px 18px}
+.csn{font-size:11px;color:var(--mid);margin-bottom:3px}
+.ctm{font-size:10px;opacity:.55;margin-top:3px;align-self:flex-end}
+/* ── EVENTS ── */
+/* ── PROFILE ── */
+.prh{background:linear-gradient(135deg,var(--dk),#334155);color:#fff;padding:40px 20px 22px;display:flex;flex-direction:column;align-items:center;gap:10px;text-align:center}
+.prn{font-size:21px;font-weight:800}
+.prl{font-size:13px;color:#94a3b8}
+.prb{font-size:14px;color:#cbd5e1;max-width:280px;line-height:1.5}
+.prbo{max-width:480px;margin:0 auto;padding:16px;display:flex;flex-direction:column;gap:14px}
+.sp-tag{display:inline-flex;align-items:center;gap:5px;padding:6px 13px;border-radius:20px;font-size:13px;font-weight:600;background:var(--lt);color:var(--dk)}
+.sp-tags{display:flex;flex-wrap:wrap;gap:8px}
+@media(min-width:480px){
+  #bnav{max-width:480px;left:50%;transform:translateX(-50%);right:auto;width:100%}
+  .cia{left:50%;transform:translateX(-50%)}
+}
+</style>
+</head>
+<body>
+
+<div id="tc"></div>
+
+<nav id="bnav" class="hidden">
+  <button class="nb on" id="nb-dashboard" onclick="go('dashboard')">
+    <svg viewBox="0 0 24 24" fill="currentColor"><path d="M10 20v-6h4v6h5v-8h3L12 3 2 12h3v8z"/></svg>Home
+  </button>
+  <button class="nb" id="nb-groups" onclick="go('groups')">
+    <svg viewBox="0 0 24 24" fill="currentColor"><path d="M16 11c1.66 0 2.99-1.34 2.99-3S17.66 5 16 5c-1.66 0-3 1.34-3 3s1.34 3 3 3zm-8 0c1.66 0 2.99-1.34 2.99-3S9.66 5 8 5C6.34 5 5 6.34 5 8s1.34 3 3 3zm0 2c-2.33 0-7 1.17-7 3.5V19h14v-2.5c0-2.33-4.67-3.5-7-3.5zm8 0c-.29 0-.62.02-.97.05 1.16.84 1.97 1.97 1.97 3.45V19h6v-2.5c0-2.33-4.67-3.5-7-3.5z"/></svg>Groups
+  </button>
+  <button class="nb" id="nb-events" onclick="go('events')">
+    <svg viewBox="0 0 24 24" fill="currentColor"><path d="M17 12h-5v5h5v-5zM16 1v2H8V1H6v2H5c-1.11 0-2 .9-2 2v14c0 1.1.89 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2h-1V1h-2zm3 18H5V8h14v11z"/></svg>Events
+  </button>
+  <button class="nb" id="nb-profile" onclick="go('profile')">
+    <svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/></svg>Profile
+  </button>
+</nav>
+
+<!-- WELCOME -->
+<div id="pg-welcome" class="pg">
+  <div class="wh">
+    <div class="we">⚽</div>
+    <div><div class="wt">ShowUp<span>2</span>Move</div><div style="color:var(--or);font-size:13px;letter-spacing:1px;margin-top:2px">SPONTANEOUS SPORTS MATCHING</div></div>
+    <div class="ws">Find your team, show up, and play — no planning required.</div>
+    <div class="wf">
+      <div class="wfi"><div class="wfi-ic">⚡</div><span>One tap to signal you're available today</span></div>
+      <div class="wfi"><div class="wfi-ic">🤝</div><span>Auto-matched with players by sport &amp; skill</span></div>
+      <div class="wfi"><div class="wfi-ic">🤖</div><span>AI reads your bio and suggests your sports</span></div>
+      <div class="wfi"><div class="wfi-ic">📍</div><span>Coordinate venues, times, and logistics</span></div>
+    </div>
+  </div>
+  <div class="wa">
+    <button class="btn bp bw blg" onclick="startOnboard()">Get Started 🚀</button>
+    <button class="btn bl bw" onclick="signInPrompt()">I already have an account</button>
+  </div>
+</div>
+
+<!-- ONBOARD -->
+<div id="pg-onboard" class="pg hidden">
+  <div class="oh">
+    <div style="display:flex;align-items:center;justify-content:space-between">
+      <button class="btn bgh bsm" id="ob-back" onclick="obBack()">← Back</button>
+      <span id="ob-lbl" style="font-size:13px;color:var(--mid)">Step 1 of 3</span>
+      <span style="width:60px"></span>
+    </div>
+    <div class="opb"><div class="pb dn" id="pb1"></div><div class="pb" id="pb2"></div><div class="pb" id="pb3"></div></div>
+  </div>
+
+  <!-- Step 1 -->
+  <div id="ob-s1" class="os">
+    <div><div class="sl">Step 1</div><div class="sh">Create your profile</div><div class="ssb">A quick intro — takes 30 seconds.</div></div>
+    <div class="pu" onclick="document.getElementById('ph-file').click()">
+      <input type="file" id="ph-file" accept="image/*" onclick="event.stopPropagation()" onchange="onPhoto(event)">
+      <img id="ph-prev" src="" class="hidden" alt="">
+      <div id="ph-ph" style="display:flex;flex-direction:column;align-items:center;gap:6px"><div style="font-size:36px">📷</div><div style="font-size:13px;color:var(--mid)">Tap to add a profile photo</div></div>
+    </div>
+    <div class="fg"><label class="fl">Full Name *</label><input id="ob-name" type="text" placeholder="Alex Johnson"></div>
+    <div class="fg"><label class="fl">Email *</label><input id="ob-email" type="email" placeholder="alex@example.com"></div>
+    <div class="fg"><label class="fl">Location</label><input id="ob-loc" type="text" placeholder="City, Country"></div>
+    <div class="fg">
+      <label class="fl">Overall Skill Level</label>
+      <select id="ob-skill">
+        <option value="beginner">🟢 Beginner — just getting into sports</option>
+        <option value="intermediate">🟡 Intermediate — play regularly</option>
+        <option value="advanced">🔴 Advanced — compete or train seriously</option>
+      </select>
+    </div>
+    <button class="btn bp bw" onclick="obNext()">Continue →</button>
+  </div>
+
+  <!-- Step 2 -->
+  <div id="ob-s2" class="os hidden">
+    <div><div class="sl">Step 2</div><div class="sh">Sports &amp; bio</div><div class="ssb">Let AI detect your interests from your bio.</div></div>
+    <div class="fg">
+      <label class="fl">Bio</label>
+      <textarea id="ob-bio" placeholder="I've been playing basketball since college and run 5Ks on weekends…"></textarea>
+      <button class="btn bo bsm" id="ai-btn" onclick="detectSports()" style="margin-top:6px">🤖 Detect my sports with AI</button>
+    </div>
+    <div class="fg"><label class="fl">Select Sports</label><div class="sg" id="sports-grid"></div></div>
+    <button class="btn bp bw" onclick="obNext()">Continue →</button>
+  </div>
+
+  <!-- Step 3 -->
+  <div id="ob-s3" class="os hidden">
+    <div><div class="sl">Step 3</div><div class="sh">Looks good!</div><div class="ssb">Review your profile before joining.</div></div>
+    <div class="card" id="ob-review"></div>
+    <button class="btn bp bw blg" id="ob-submit" onclick="submitOnboard()">Join ShowUp2Move 🚀</button>
+    <div style="font-size:12px;color:var(--mid);text-align:center">Play fair. Show up when you say you will 😄</div>
+  </div>
+</div>
+
+<!-- DASHBOARD -->
+<div id="pg-dashboard" class="pg hidden">
+  <div class="dh">
+    <div class="dhi">
+      <div class="dg" id="d-greet">Good morning,</div>
+      <div class="dn2" id="d-name">—</div>
+      <div class="dss">
+        <div class="ds"><div class="dsn" id="d-sc">0</div><div class="dsl">Sports</div></div>
+        <div class="ds"><div class="dsn" id="d-gc">0</div><div class="dsl">Groups</div></div>
+        <div class="ds"><div class="dsn" id="d-shc">0</div><div class="dsl">ShowUps</div></div>
+      </div>
+    </div>
+  </div>
+  <div class="db">
+    <!-- weather -->
+    <div class="wc" id="w-card">
+      <div class="wi" id="w-ic">🌤️</div>
+      <div>
+        <div style="display:flex;align-items:baseline;gap:8px"><div class="wtp" id="w-tp">—°</div><div class="wds" id="w-ds">Loading…</div></div>
+        <div class="wrec" id="w-rec">Checking weather…</div>
+      </div>
+    </div>
+    <!-- showup -->
+    <div>
+      <div class="st" style="margin-bottom:10px">Today's Availability</div>
+      <div class="suc na" id="su-card" onclick="toggleAvail()">
+        <div class="su-ic" id="su-ic">🙋</div>
+        <div class="su-ti" id="su-ti">ShowUp Today?</div>
+        <div class="su-sb" id="su-sb">Tap to signal you're available to play</div>
+      </div>
+    </div>
+    <!-- match -->
+    <div class="sec">
+      <div class="st">Smart Matching</div>
+      <button class="btn bp bw" id="find-btn" onclick="findGroup()">🎯 Find My Group</button>
+      <div id="match-preview"></div>
+    </div>
+    <!-- achievements -->
+    <div class="sec">
+      <div class="st">Achievements</div>
+      <div id="d-ach"><div style="font-size:13px;color:var(--mid)">Complete actions to earn achievements!</div></div>
+    </div>
+  </div>
+</div>
+
+<!-- GROUPS -->
+<div id="pg-groups" class="pg hidden">
+  <div class="pi" style="padding-top:16px">
+    <div class="sec">
+      <div class="st">My Groups <button class="btn bp bsm" onclick="findGroup()">Find New</button></div>
+      <div id="groups-list">
+        <div class="es"><div class="ei">👥</div><div style="font-weight:700">No groups yet</div><div style="font-size:13px;color:var(--mid)">Mark yourself available and hit Find My Group.</div><button class="btn bp" onclick="go('dashboard')">Dashboard</button></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- CHAT -->
+<div id="pg-chat" class="pg hidden">
+  <div class="chh">
+    <button class="btn bgh bsm" onclick="go('groups')">←</button>
+    <div id="ch-icon" style="font-size:24px">⚽</div>
+    <div style="flex:1"><div style="font-weight:700" id="ch-name">Group Chat</div><div style="font-size:12px;color:var(--mid)" id="ch-cnt">— members</div></div>
+  </div>
+  <div class="chm" id="chat-msgs"></div>
+  <div class="cia">
+    <input type="text" id="chat-in" placeholder="Type a message…" onkeydown="if(event.key==='Enter')sendMsg()">
+    <button class="btn bp bsm" onclick="sendMsg()">Send</button>
+  </div>
+</div>
+
+<!-- EVENTS -->
+<div id="pg-events" class="pg hidden">
+  <div class="pi" style="padding-top:16px">
+    <div class="sec">
+      <div class="st">Create Event</div>
+      <div class="card">
+        <div style="display:flex;flex-direction:column;gap:14px">
+          <div class="fg"><label class="fl">Sport</label>
+            <select id="ev-sp">
+              <option value="football">⚽ Football</option>
+              <option value="basketball">🏀 Basketball</option>
+              <option value="tennis">🎾 Tennis</option>
+              <option value="running">🏃 Running</option>
+            </select>
+          </div>
+          <div class="fg"><label class="fl">Venue</label><input id="ev-ve" type="text" placeholder="Central Park, Field A" oninput="onVenue(this.value)"></div>
+          <div id="ev-map" class="hidden"><a id="ev-map-a" href="#" target="_blank" class="btn bl bw bsm">📍 Preview on Google Maps</a></div>
+          <div class="fg"><label class="fl">Date &amp; Time</label><input id="ev-dt" type="datetime-local"></div>
+          <div class="fg"><label class="fl">Notes</label><textarea id="ev-nt" placeholder="Bring water, dress for the weather…"></textarea></div>
+          <button class="btn bp bw" onclick="createEvent()">Create Event 📅</button>
+        </div>
+      </div>
+      <div class="st">My Events</div>
+      <div id="ev-list"><div style="font-size:13px;color:var(--mid);text-align:center;padding:16px">No events yet.</div></div>
+    </div>
+  </div>
+</div>
+
+<!-- PROFILE -->
+<div id="pg-profile" class="pg hidden">
+  <div class="prh">
+    <div class="av av-lg" id="pr-av">?</div>
+    <div class="prn" id="pr-name">—</div>
+    <div class="prl" id="pr-loc"></div>
+    <div class="prb" id="pr-bio"></div>
+  </div>
+  <div class="prbo">
+    <div class="card sec"><div class="st">Sports &amp; Skills</div><div class="sp-tags" id="pr-sports"></div></div>
+    <div class="card sec"><div class="st">Achievements</div><div id="pr-ach"></div></div>
+    <div class="card"><button class="btn bl bw" onclick="signOut()">Sign Out</button></div>
+  </div>
+</div>
+
+<script>
+// ── STATE ──────────────────────────────────────────
+const S = { user:null, groups:[], chats:{}, events:[], activeChatId:null, weather:null, showupCount:0 };
+const OB = { step:1, name:'', email:'', loc:'', skill:'beginner', bio:'', photo:null, sports:{} };
+
+const SM = {
+  football:  { icon:'⚽', min:10, label:'Football' },
+  basketball:{ icon:'🏀', min:6,  label:'Basketball' },
+  tennis:    { icon:'🎾', min:2,  label:'Tennis' },
+  running:   { icon:'🏃', min:2,  label:'Running' },
+};
+const SKILLS = ['beginner','intermediate','advanced'];
+const ACH_DEF = [
+  { id:'first_showup',    icon:'🙋', label:'First ShowUp',    desc:'Marked yourself available for the first time' },
+  { id:'team_player',     icon:'🤝', label:'Team Player',     desc:'Got matched into a group' },
+  { id:'captain',         icon:'👑', label:'Captain',          desc:'Assigned as group captain' },
+  { id:'chatter',         icon:'💬', label:'Chatter',          desc:'Sent your first group message' },
+  { id:'sport_sampler',   icon:'🏅', label:'Sport Sampler',   desc:'Added 3 or more sports' },
+  { id:'event_organizer', icon:'📅', label:'Event Organizer', desc:'Created your first event' },
+  { id:'ai_user',         icon:'🤖', label:'AI Whisperer',    desc:'Used AI to detect sports from bio' },
+];
+
+// ── STORAGE ────────────────────────────────────────
+function ls(k,v){
+  const key='s2m_'+k;
+  if(v===undefined){try{return JSON.parse(localStorage.getItem(key))}catch{return null}}
+  localStorage.setItem(key,JSON.stringify(v));
+}
+
+// ── TOAST ──────────────────────────────────────────
+function toast(msg,type=''){
+  const el=document.createElement('div');
+  el.className='tst'+(type?' '+type:'');
+  el.textContent=msg;
+  document.getElementById('tc').appendChild(el);
+  setTimeout(()=>el.remove(),3200);
+}
+
+// ── API ────────────────────────────────────────────
+async function api(method,path,body){
+  const r=await fetch(path,{method,headers:{'Content-Type':'application/json'},body:body?JSON.stringify(body):undefined});
+  return{ok:r.ok,status:r.status,data:await r.json().catch(()=>null)};
+}
+
+// ── NAVIGATION ─────────────────────────────────────
+const PAGES=['welcome','onboard','dashboard','groups','chat','events','profile'];
+const NAV_PAGES=['dashboard','groups','events','profile'];
+
+function go(page){
+  PAGES.forEach(p=>document.getElementById('pg-'+p)?.classList.toggle('hidden',p!==page));
+  const showNav=NAV_PAGES.includes(page);
+  document.getElementById('bnav').classList.toggle('hidden',!showNav);
+  NAV_PAGES.forEach(p=>document.getElementById('nb-'+p)?.classList.toggle('on',p===page));
+  if(page==='dashboard') refreshDash();
+  if(page==='groups') renderGroups();
+  if(page==='profile') renderProfile();
+  if(page==='events') renderEvents();
+}
+
+// ── GREETING ───────────────────────────────────────
+function greet(){const h=new Date().getHours();return h<12?'Good morning,':h<18?'Good afternoon,':'Good evening,'}
+function fmtTime(iso){return new Date(iso).toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'})}
+function fmtDate(iso){return new Date(iso).toLocaleDateString([],{weekday:'short',month:'short',day:'numeric'})}
+function esc(s){return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;')}
+
+// ── WELCOME ────────────────────────────────────────
+function startOnboard(){OB.step=1;go('onboard');renderOB()}
+function signInPrompt(){
+  const id=prompt('Enter your User ID:');
+  if(id){ls('userId',id);loadUser(id)}
+}
+
+// ── ONBOARD ────────────────────────────────────────
+function renderOB(){
+  [1,2,3].forEach(n=>{
+    document.getElementById('ob-s'+n).classList.toggle('hidden',n!==OB.step);
+    document.getElementById('pb'+n).classList.toggle('dn',n<=OB.step);
+  });
+  document.getElementById('ob-lbl').textContent=`Step ${OB.step} of 3`;
+  document.getElementById('ob-back').style.visibility=OB.step>1?'visible':'hidden';
+  if(OB.step===2) renderSportsGrid();
+  if(OB.step===3) renderReview();
+}
+
+function renderSportsGrid(){
+  document.getElementById('sports-grid').innerHTML=Object.entries(SM).map(([sp,m])=>{
+    const sel=sp in OB.sports, sk=OB.sports[sp]||'beginner';
+    return`<div class="sc${sel?' sel':''}" id="sc-${sp}" onclick="toggleSport('${sp}')">
+      <div class="sc-ic">${m.icon}</div>
+      <div class="sc-nm">${m.label}</div>
+      ${sel?`<div class="sc-sk" onclick="event.stopPropagation()"><select onchange="OB.sports['${sp}']=this.value" style="padding:5px 8px;font-size:12px">${SKILLS.map(s=>`<option value="${s}"${sk===s?' selected':''}>${s}</option>`).join('')}</select></div>`:''}
+    </div>`;
+  }).join('');
+}
+
+function toggleSport(sp){
+  if(sp in OB.sports) delete OB.sports[sp]; else OB.sports[sp]='beginner';
+  renderSportsGrid();
+}
+
+function renderReview(){
+  const sports=Object.entries(OB.sports);
+  document.getElementById('ob-review').innerHTML=`
+    <div style="display:flex;align-items:center;gap:12px;margin-bottom:14px">
+      ${OB.photo?`<img src="${OB.photo}" class="av av-lg" style="background-size:cover">`:`<div class="av av-lg">${OB.name[0]||'?'}</div>`}
+      <div>
+        <div style="font-size:18px;font-weight:700">${esc(OB.name)}</div>
+        <div style="font-size:13px;color:var(--mid)">${esc(OB.email)}</div>
+        ${OB.loc?`<div style="font-size:13px;color:var(--mid)">📍 ${esc(OB.loc)}</div>`:''}
+      </div>
+    </div>
+    ${OB.bio?`<div style="font-size:13px;color:var(--mid);margin-bottom:10px">${esc(OB.bio)}</div>`:''}
+    <div style="margin-bottom:10px"><strong>Skill:</strong> ${OB.skill}</div>
+    <div style="font-size:13px;font-weight:700;margin-bottom:8px">Sports (${sports.length})</div>
+    <div class="sp-tags">${sports.length?sports.map(([s,sk])=>`<span class="sp-tag">${SM[s]?.icon||''} ${s} <span style="opacity:.6;font-size:11px">${sk}</span></span>`).join(''):'<span style="font-size:13px;color:var(--mid)">None selected</span>'}</div>`;
+}
+
+function onPhoto(e){
+  const f=e.target.files[0]; if(!f) return;
+  const r=new FileReader();
+  r.onload=ev=>{
+    OB.photo=ev.target.result;
+    const prev=document.getElementById('ph-prev');
+    prev.src=OB.photo; prev.classList.remove('hidden');
+    document.getElementById('ph-ph').classList.add('hidden');
+  };
+  r.readAsDataURL(f);
+}
+
+async function detectSports(){
+  const bio=document.getElementById('ob-bio').value.trim();
+  if(!bio){toast('Write something in your bio first!','err');return}
+  const btn=document.getElementById('ai-btn');
+  btn.disabled=true; btn.textContent='🤖 Detecting…';
+  try{
+    const r=await api('POST','/api/ai/detect-sports',{bio});
+    if(r.ok&&Array.isArray(r.data?.sports)&&r.data.sports.length){
+      for(const{sport,skill}of r.data.sports)
+        if(SM[sport]) OB.sports[sport]=SKILLS.includes(skill)?skill:'beginner';
+      renderSportsGrid();
+      toast(`Detected ${r.data.sports.length} sport(s)!`,'ok');
+      unlock('ai_user');
+    } else toast('No sports detected — try mentioning specific sports.','inf');
+  }catch{toast('AI detection failed. Select sports manually.','err')}
+  finally{btn.disabled=false;btn.textContent='🤖 Detect my sports with AI'}
+}
+
+function obNext(){
+  if(OB.step===1){
+    OB.name=document.getElementById('ob-name').value.trim();
+    OB.email=document.getElementById('ob-email').value.trim();
+    if(!OB.name||!OB.email){toast('Name and email are required.','err');return}
+    OB.loc=document.getElementById('ob-loc').value.trim();
+    OB.skill=document.getElementById('ob-skill').value;
+    OB.step=2;
+  } else if(OB.step===2){
+    OB.bio=document.getElementById('ob-bio').value.trim();
+    OB.step=3;
+  }
+  renderOB();
+}
+
+function obBack(){
+  if(OB.step>1){OB.step--;renderOB()} else go('welcome');
+}
+
+async function submitOnboard(){
+  const btn=document.getElementById('ob-submit');
+  btn.disabled=true; btn.textContent='Creating your profile…';
+  const sports=Object.entries(OB.sports).map(([sport,skill])=>({sport,skill}));
+  try{
+    const r=await api('POST','/api/users',{name:OB.name,email:OB.email,skillLevel:OB.skill,location:OB.loc,bio:OB.bio,sports});
+    if(!r.ok){toast(r.data?.error||'Failed to create account.','err');btn.disabled=false;btn.textContent='Join ShowUp2Move 🚀';return}
+    if(OB.photo) ls('photo',OB.photo);
+    ls('userId',r.data.id); ls('showupCount',0); ls('achievements',[]); ls('chats',{}); ls('events',[]);
+    if(sports.length>=3) unlock('sport_sampler');
+    await loadUser(r.data.id);
+  }catch{toast('Network error.','err');btn.disabled=false;btn.textContent='Join ShowUp2Move 🚀'}
+}
+
+// ── LOAD USER ──────────────────────────────────────
+async function loadUser(id){
+  try{
+    const r=await api('GET',`/api/users/${id}`);
+    if(!r.ok){ls('userId',null);go('welcome');return}
+    S.user=r.data;
+    S.groups=ls('groups')||[];
+    S.chats=ls('chats')||{};
+    S.events=ls('events')||[];
+    S.showupCount=ls('showupCount')||0;
+    go('dashboard');
+  }catch{go('welcome')}
+}
+
+// ── DASHBOARD ──────────────────────────────────────
+function refreshDash(){
+  if(!S.user) return;
+  const u=S.user;
+  document.getElementById('d-greet').textContent=greet();
+  document.getElementById('d-name').textContent=u.name;
+  document.getElementById('d-sc').textContent=u.sportPreferences?.length||0;
+  document.getElementById('d-gc').textContent=S.groups.length;
+  document.getElementById('d-shc').textContent=S.showupCount;
+  const av=u.todayAvailability?.isAvailable===true;
+  const card=document.getElementById('su-card');
+  card.className='suc '+(av?'av':'na');
+  document.getElementById('su-ic').textContent=av?'✅':'🙋';
+  document.getElementById('su-ti').textContent=av?"You're IN today!":'ShowUp Today?';
+  document.getElementById('su-sb').textContent=av?'Tap to cancel your availability':"Tap to signal you're available to play";
+  renderAch('d-ach');
+  loadWeather();
+}
+
+async function toggleAvail(){
+  if(!S.user) return;
+  const card=document.getElementById('su-card');
+  card.style.opacity='.6'; card.style.pointerEvents='none';
+  try{
+    const av=S.user.todayAvailability?.isAvailable===true;
+    const r=await api(av?'DELETE':'POST','/api/availability',{userId:S.user.id});
+    if(r.ok){
+      const ur=await api('GET',`/api/users/${S.user.id}`);
+      if(ur.ok) S.user=ur.data;
+      if(!av){S.showupCount++;ls('showupCount',S.showupCount);unlock('first_showup');toast("You're in! We'll find you a group.",'ok')}
+      else toast('Availability removed.','');
+      refreshDash();
+    }
+  }catch{toast('Failed to update availability.','err')}
+  finally{card.style.opacity='';card.style.pointerEvents=''}
+}
+
+async function findGroup(){
+  const btn=document.getElementById('find-btn');
+  btn.disabled=true; btn.textContent='🔍 Searching…';
+  try{
+    const r=await api('POST','/api/match/run');
+    if(!r.ok){toast('Matching failed.','err');return}
+    const groups=r.data?.groups||[];
+    if(!groups.length){
+      toast("No matches yet — make sure you're available.",'inf');
+      document.getElementById('match-preview').innerHTML='<div style="font-size:13px;color:var(--mid);text-align:center;padding:10px 0">No matches found. Ask friends to join!</div>';
+      return;
+    }
+    // resolve names
+    const ids=[...new Set(groups.flatMap(g=>g.members.map(m=>m.userId)))];
+    const nm={};
+    await Promise.allSettled(ids.map(async id=>{const ur=await api('GET',`/api/users/${id}`);if(ur.ok) nm[id]=ur.data.name}));
+    S.groups=groups.map(g=>({...g,members:g.members.map(m=>({...m,name:nm[m.userId]||m.userId}))}));
+    ls('groups',S.groups);
+    if(S.groups.some(g=>g.members.some(m=>m.userId===S.user?.id&&m.role==='captain'))) unlock('captain');
+    unlock('team_player');
+    document.getElementById('match-preview').innerHTML=`<div style="font-size:13px;padding:8px 0">✅ Found <strong>${groups.length} group(s)</strong> — <a href="#" onclick="go('groups');return false" style="color:var(--or)">View Groups →</a></div>`;
+    document.getElementById('d-gc').textContent=S.groups.length;
+    toast(`Matched into ${groups.length} group(s)!`,'ok');
+  }catch{toast('Network error.','err')}
+  finally{btn.disabled=false;btn.textContent='🎯 Find My Group'}
+}
+
+// ── WEATHER ────────────────────────────────────────
+async function loadWeather(){
+  if(S.weather){renderWeather(S.weather);return}
+  try{
+    const r=await fetch('https://wttr.in/?format=j1');
+    if(!r.ok) throw 0;
+    const d=await r.json();
+    const c=d.current_condition[0];
+    S.weather={t:c.temp_C,desc:c.weatherDesc[0].value,code:+c.weatherCode};
+    renderWeather(S.weather);
+  }catch{
+    document.getElementById('w-card').innerHTML='<div class="wi">🌤️</div><div><div style="font-size:14px;color:#fff;font-weight:700">Weather unavailable</div><div class="wrec">Great day to get active!</div></div>';
+  }
+}
+
+function renderWeather({t,desc,code}){
+  let ic='🌤️';
+  if(code<=113) ic='☀️'; else if(code<=176) ic='⛅'; else if(code<=266) ic='🌧️'; else if(code<=395) ic='❄️';
+  const rec=t>20?'🏃 Perfect weather to play outside!':t>10?'⚽ Good conditions — layer up!':'🏀 Cold outside — consider indoor sports!';
+  document.getElementById('w-ic').textContent=ic;
+  document.getElementById('w-tp').textContent=t+'°C';
+  document.getElementById('w-ds').textContent=desc;
+  document.getElementById('w-rec').textContent=rec;
+}
+
+// ── GROUPS ─────────────────────────────────────────
+function renderGroups(){
+  const c=document.getElementById('groups-list');
+  if(!S.groups.length){
+    c.innerHTML='<div class="es"><div class="ei">👥</div><div style="font-weight:700">No groups yet</div><div style="font-size:13px;color:var(--mid)">Mark yourself available and hit Find My Group.</div><button class="btn bp" onclick="go(\'dashboard\')">Dashboard</button></div>';
+    return;
+  }
+  c.innerHTML=S.groups.map(g=>{
+    const m=SM[g.sport]||{icon:'🏅',label:g.sport};
+    return`<div class="gc">
+      <div class="gch">
+        <div style="display:flex;align-items:center">
+          <span class="gsic">${m.icon}</span>
+          <div><div class="gsn">${m.label}</div><div style="font-size:12px;color:var(--mid)">${g.members.length} members · min ${SM[g.sport]?.min||2}</div></div>
+        </div>
+        <span class="gst">Open</span>
+      </div>
+      <div class="gm">${g.members.map(mb=>`<div class="mr"><div class="av av-sm">${(mb.name||'?')[0].toUpperCase()}</div><div class="mn">${esc(mb.name||mb.userId)}</div>${mb.role==='captain'?'<span class="cb">👑 Captain</span>':''}</div>`).join('')}</div>
+      <div class="ga">
+        <button class="btn bp bsm" onclick="openChat('${g.id}')">💬 Chat</button>
+        <button class="btn bl bsm" onclick="window.open('https://www.google.com/maps/search/${encodeURIComponent((SM[g.sport]?.label||g.sport)+' venue near me')}','_blank')">📍 Find Venue</button>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+// ── CHAT ───────────────────────────────────────────
+function openChat(gid){
+  const g=S.groups.find(x=>x.id===gid); if(!g) return;
+  S.activeChatId=gid;
+  const m=SM[g.sport]||{icon:'🏅',label:g.sport};
+  document.getElementById('ch-icon').textContent=m.icon;
+  document.getElementById('ch-name').textContent=m.label+' Group';
+  document.getElementById('ch-cnt').textContent=g.members.length+' members';
+  renderChat(gid);
+  go('chat');
+}
+
+function renderChat(gid){
+  const msgs=S.chats[gid]||[];
+  const c=document.getElementById('chat-msgs');
+  if(!msgs.length){c.innerHTML='<div class="es" style="padding:32px 0"><div class="ei">💬</div><div style="font-size:13px;color:var(--mid)">No messages yet. Say hi!</div></div>';return}
+  c.innerHTML=msgs.map(m=>{
+    const own=m.uid===S.user?.id;
+    return`<div class="cm ${own?'own':'oth'}">
+      ${!own?`<div class="av av-sm">${(m.sn||'?')[0]}</div>`:''}
+      <div>${!own?`<div class="csn">${esc(m.sn||'')}</div>`:''}
+        <div class="cbbl">${esc(m.txt)}</div>
+        <div class="ctm">${fmtTime(m.ts)}</div>
+      </div>
+    </div>`;
+  }).join('');
+  c.scrollTop=c.scrollHeight;
+}
+
+function sendMsg(){
+  const inp=document.getElementById('chat-in');
+  const txt=inp.value.trim();
+  if(!txt||!S.activeChatId||!S.user) return;
+  if(!S.chats[S.activeChatId]) S.chats[S.activeChatId]=[];
+  S.chats[S.activeChatId].push({uid:S.user.id,sn:S.user.name,txt,ts:new Date().toISOString()});
+  ls('chats',S.chats);
+  unlock('chatter');
+  inp.value='';
+  renderChat(S.activeChatId);
+}
+
+// ── EVENTS ─────────────────────────────────────────
+function onVenue(v){
+  const a=document.getElementById('ev-map-a'),d=document.getElementById('ev-map');
+  if(v.trim()){a.href=`https://www.google.com/maps/search/${encodeURIComponent(v)}`;d.classList.remove('hidden')}
+  else d.classList.add('hidden');
+}
+
+function renderEvents(){
+  const dt=document.getElementById('ev-dt');
+  if(!dt.value){const t=new Date();t.setDate(t.getDate()+1);t.setHours(10,0,0,0);dt.value=t.toISOString().slice(0,16)}
+  const el=document.getElementById('ev-list');
+  if(!S.events.length){el.innerHTML='<div style="font-size:13px;color:var(--mid);text-align:center;padding:16px">No events yet.</div>';return}
+  el.innerHTML=S.events.map(ev=>`
+    <div class="card" style="margin-bottom:8px">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px">
+        <span style="font-size:20px">${SM[ev.sp]?.icon||'🏅'}</span>
+        <span style="font-size:12px;color:var(--mid)">${fmtDate(ev.dt)}</span>
+      </div>
+      <div style="font-weight:700;text-transform:capitalize">${ev.sp}</div>
+      <div style="font-size:13px;color:var(--mid)">📍 ${esc(ev.ve||'TBD')}</div>
+      <div style="font-size:13px;color:var(--mid)">🕐 ${fmtTime(ev.dt)}</div>
+      ${ev.nt?`<div style="font-size:13px;margin-top:6px">${esc(ev.nt)}</div>`:''}
+      <div style="margin-top:10px"><a href="https://www.google.com/maps/search/${encodeURIComponent(ev.ve)}" target="_blank" class="btn bl bsm">📍 View on Map</a></div>
+    </div>`).join('');
+}
+
+function createEvent(){
+  const sp=document.getElementById('ev-sp').value;
+  const ve=document.getElementById('ev-ve').value.trim();
+  const dt=document.getElementById('ev-dt').value;
+  const nt=document.getElementById('ev-nt').value.trim();
+  if(!ve||!dt){toast('Venue and time are required.','err');return}
+  S.events.push({id:Date.now()+'',sp,ve,dt,nt,ca:new Date().toISOString()});
+  ls('events',S.events);
+  unlock('event_organizer');
+  toast('Event created! 📅','ok');
+  document.getElementById('ev-ve').value='';
+  document.getElementById('ev-nt').value='';
+  document.getElementById('ev-map').classList.add('hidden');
+  renderEvents();
+}
+
+// ── PROFILE ────────────────────────────────────────
+function renderProfile(){
+  if(!S.user) return;
+  const u=S.user, photo=ls('photo');
+  const av=document.getElementById('pr-av');
+  if(photo){av.style.cssText=`background-image:url(${photo});background-size:cover;background-position:center`;av.textContent=''}
+  else av.textContent=(u.name||'?')[0].toUpperCase();
+  document.getElementById('pr-name').textContent=u.name;
+  document.getElementById('pr-loc').textContent=u.location?'📍 '+u.location:'';
+  document.getElementById('pr-bio').textContent=u.bio||'';
+  const prefs=u.sportPreferences||[];
+  document.getElementById('pr-sports').innerHTML=prefs.length
+    ?prefs.map(p=>`<span class="sp-tag">${SM[p.sport]?.icon||'🏅'} ${p.sport} <span style="opacity:.6;font-size:11px">${p.skill}</span></span>`).join('')
+    :'<span style="font-size:13px;color:var(--mid)">No sports added</span>';
+  renderAch('pr-ach');
+}
+
+// ── ACHIEVEMENTS ───────────────────────────────────
+function unlock(id){
+  const earned=ls('achievements')||[];
+  if(earned.includes(id)) return;
+  earned.push(id); ls('achievements',earned);
+  const d=ACH_DEF.find(a=>a.id===id);
+  if(d) toast(`🏅 Achievement: ${d.icon} ${d.label}!`,'ok');
+}
+
+function renderAch(cid){
+  const c=document.getElementById(cid); if(!c) return;
+  const earned=ls('achievements')||[];
+  const defs=ACH_DEF.filter(a=>earned.includes(a.id));
+  c.innerHTML=defs.length
+    ?defs.map(a=>`<div class="ach" style="margin-bottom:6px"><span class="ach-ic">${a.icon}</span><div><div style="font-weight:700">${a.label}</div><div style="font-size:12px;opacity:.7">${a.desc}</div></div></div>`).join('')
+    :'<div style="font-size:13px;color:var(--mid)">No achievements yet — keep playing!</div>';
+}
+
+// ── SIGN OUT ───────────────────────────────────────
+function signOut(){
+  ['userId','groups','chats','events','showupCount','achievements','photo'].forEach(k=>localStorage.removeItem('s2m_'+k));
+  Object.assign(S,{user:null,groups:[],chats:{},events:[],activeChatId:null,weather:null,showupCount:0});
+  go('welcome');
+}
+
+// ── NOTIFICATIONS ──────────────────────────────────
+function initNotifications(){
+  if(!('Notification'in window)||Notification.permission!=='default') return;
+  Notification.requestPermission();
+}
+
+function scheduleReminder(){
+  const now=new Date(), next=new Date();
+  next.setHours(8,0,0,0);
+  if(now>=next) next.setDate(next.getDate()+1);
+  setTimeout(()=>{
+    if(Notification.permission==='granted')
+      new Notification('ShowUp2Move',{body:"Will you ShowUp today? 🏃 Let your team know!",icon:'/favicon.ico'});
+    scheduleReminder();
+  },next-now);
+}
+
+// ── INIT ───────────────────────────────────────────
+(async function init(){
+  S.chats=ls('chats')||{};
+  S.events=ls('events')||[];
+  const uid=ls('userId');
+  if(uid) await loadUser(uid); else go('welcome');
+  initNotifications();
+  scheduleReminder();
+})();
+</script>
+</body>
+</html>

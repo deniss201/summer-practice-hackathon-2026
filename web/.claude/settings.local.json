@@ -2,7 +2,14 @@
   "permissions": {
     "allow": [
       "Bash(pnpm add *)",
-      "Bash(pnpm approve-builds *)"
+      "Bash(pnpm approve-builds *)",
+      "Bash(unzip -o ShowUp2Move-handoff.zip -d ShowUp2Move-handoff)",
+      "Bash(./node_modules/.bin/tsc *)",
+      "Bash(./node_modules/.bin/prisma migrate *)",
+      "Bash(./node_modules/.bin/prisma generate *)",
+      "Bash(Out-Null)",
+      "Bash(mkdir -Force \"C:\\\\dev\\\\summer-practice-hackathon-2026\\\\web\\\\app\\\\api\\\\groups\\\\[id]\\\\chat\")",
+      "Bash(Write-Output \"dirs created\")"
     ]
   }
 }

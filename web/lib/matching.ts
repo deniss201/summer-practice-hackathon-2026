@@ -4,10 +4,11 @@ import type { MatchGroup, GroupMember } from "@prisma/client";
 export type MatchedGroup = MatchGroup & { members: GroupMember[] };
 
 export async function runMatching(): Promise<MatchedGroup[]> {
-  const todayStart = new Date();
-  todayStart.setHours(0, 0, 0, 0);
-  const todayEnd = new Date();
-  todayEnd.setHours(23, 59, 59, 999);
+  const now = new Date();
+  const todayStart = new Date(now);
+  todayStart.setHours(todayStart.getHours() - 24);
+  const todayEnd = new Date(now);
+  todayEnd.setHours(todayEnd.getHours() + 24);
 
   const available = await prisma.availability.findMany({
     where: {
@@ -19,6 +20,8 @@ export async function runMatching(): Promise<MatchedGroup[]> {
     },
   });
 
+  console.log("[matching] availability records found:", available.length);
+
   // Map sport → unique userIds
   const bySport = new Map<string, Set<string>>();
   for (const slot of available) {
@@ -28,44 +31,69 @@ export async function runMatching(): Promise<MatchedGroup[]> {
     }
   }
 
+  console.log("[matching] users per sport:", Object.fromEntries(
+    Array.from(bySport.entries()).map(([sport, ids]) => [sport, ids.size])
+  ));
+
   const MIN_GROUP_SIZE: Record<string, number> = {
-    football: 10,
-    basketball: 6,
+    football: 4,
+    basketball: 2,
     tennis: 2,
   };
 
-  const createdGroups: MatchedGroup[] = [];
+  const affectedGroups: MatchedGroup[] = [];
 
   for (const [sport, userIds] of bySport) {
     const min = MIN_GROUP_SIZE[sport] ?? 2;
     if (userIds.size < min) continue;
 
-    const timeSlot = todayStart;
-    const group = await prisma.matchGroup.create({
-      data: {
-        sport,
-        timeSlot,
-        status: "open",
-      },
+    // Reuse an existing open group for this sport if one exists
+    const existing = await prisma.matchGroup.findFirst({
+      where: { sport, status: "open" },
+      include: { members: true },
     });
 
-    const ids = Array.from(userIds);
-    const captainIndex = Math.floor(Math.random() * ids.length);
+    if (existing) {
+      const alreadyIn = new Set(existing.members.map((m) => m.userId));
+      const toAdd = Array.from(userIds).filter((id) => !alreadyIn.has(id));
 
-    const members = await prisma.$transaction(
-      ids.map((userId, i) =>
-        prisma.groupMember.create({
-          data: {
-            groupId: group.id,
-            userId,
-            role: i === captainIndex ? "captain" : "member",
-          },
-        })
-      )
-    );
+      let members = existing.members;
+      if (toAdd.length > 0) {
+        const newMembers = await prisma.$transaction(
+          toAdd.map((userId) =>
+            prisma.groupMember.create({
+              data: { groupId: existing.id, userId, role: "member" },
+            })
+          )
+        );
+        members = [...members, ...newMembers];
+      }
 
-    createdGroups.push({ ...group, members });
+      affectedGroups.push({ ...existing, members });
+    } else {
+      // No open group for this sport yet — create one
+      const group = await prisma.matchGroup.create({
+        data: { sport, timeSlot: now, status: "open" },
+      });
+
+      const ids = Array.from(userIds);
+      const captainIndex = Math.floor(Math.random() * ids.length);
+
+      const members = await prisma.$transaction(
+        ids.map((userId, i) =>
+          prisma.groupMember.create({
+            data: {
+              groupId: group.id,
+              userId,
+              role: i === captainIndex ? "captain" : "member",
+            },
+          })
+        )
+      );
+
+      affectedGroups.push({ ...group, members });
+    }
   }
 
-  return createdGroups;
+  return affectedGroups;
 }

@@ -2,10 +2,11 @@ import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/db";
 
 function todayWindow() {
-  const start = new Date();
-  start.setHours(0, 0, 0, 0);
-  const end = new Date();
-  end.setHours(23, 59, 59, 999);
+  const now = new Date();
+  const start = new Date(now);
+  start.setHours(start.getHours() - 24);
+  const end = new Date(now);
+  end.setHours(end.getHours() + 24);
   return { start, end };
 }
 

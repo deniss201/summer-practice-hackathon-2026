@@ -21,6 +21,7 @@ model User {
   sportPreferences SportPreference[]
   availability     Availability[]
   groupMembers     GroupMember[]
+  messages         Message[]
 }
 
 model SportPreference {
@@ -46,21 +47,24 @@ model Availability {
 }
 
 model MatchGroup {
-  id        String   @id @default(cuid())
-  sport     String
-  timeSlot  DateTime
-  status    String   @default("open")
-  createdAt DateTime @default(now())
+  id          String   @id @default(cuid())
+  sport       String
+  description String?
+  timeSlot    DateTime
+  status      String   @default("open")
+  createdAt   DateTime @default(now())
 
-  members GroupMember[]
-  event   Event?
+  members  GroupMember[]
+  event    Event?
+  messages Message[]
 }
 
 model GroupMember {
-  id      String @id @default(cuid())
-  groupId String
-  userId  String
-  role    String @default("member")
+  id        String  @id @default(cuid())
+  groupId   String
+  userId    String
+  role      String  @default("member")
+  confirmed Boolean @default(false)
 
   group MatchGroup @relation(fields: [groupId], references: [id], onDelete: Cascade)
   user  User       @relation(fields: [userId], references: [id], onDelete: Cascade)
@@ -77,4 +81,15 @@ model Event {
   createdAt DateTime @default(now())
 
   group MatchGroup @relation(fields: [groupId], references: [id], onDelete: Cascade)
+}
+
+model Message {
+  id        String   @id @default(cuid())
+  groupId   String
+  userId    String
+  text      String
+  createdAt DateTime @default(now())
+
+  group MatchGroup @relation(fields: [groupId], references: [id], onDelete: Cascade)
+  user  User       @relation(fields: [userId], references: [id], onDelete: Cascade)
 }
